@@ -1,0 +1,94 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv
+venv/
+ENV/
+env/
+.env
+.conda/
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+*.sublime-settings
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb~
+*checkpoint.ipynb
+
+# OS & System files
+.DS_Store
+Thumbs.db
+*.exe
+*.dll
+*.so
+.tmp
+*.tmp
+*.lnk
+desktop.ini
+
+# Project-specific
+results/
+models/
+*.pkl
+best_nn_model.pt
+*.pth
+*.pt
+
+# Large data files (keep raw data, ignore processed)
+data/preprocessed/
+data/raw/*.csv
+!diabetes+130-us+hospitals+for+years+1999-2008/
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Development
+.streamlit/
+.tox/
+.hypothesis/
+
+# Mac
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+ehthumbs.db
+$RECYCLE.BIN/
