@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: hospital-readmission-predictor
+    runtime: python311
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app/app.py --server.port=8501 --server.address=0.0.0.0
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: true
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: true
+      - key: STREAMLIT_SERVER_PORT
+        value: 8501
+      - key: STREAMLIT_SERVER_ADDRESS
+        value: 0.0.0.0
+    healthCheckPath: /
+    autoDeploy: true
