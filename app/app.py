@@ -286,19 +286,17 @@ with col2:
     st.markdown("### 📊 Risk Assessment")
 
     if "predict" in st.session_state and st.session_state.predict:
-        # Create a simplified feature vector matching the model
-        # For demonstration, we'll create a representative patient profile
+        # Create patient input vector using training data mean/std for standardization
 
-        # Create patient input vector (simplified with common features)
-        patient_vector = np.zeros(len(feature_names))
-
-        # Map inputs to features (these would be scaled properly in production)
         try:
+            # Initialize with training data means as baseline
+            patient_vector = X_train.mean().values.copy()
+
             # Age normalization
             age_idx = next(
                 (i for i, name in enumerate(feature_names) if "age" in name.lower()), 0
             )
-            if age_idx > 0:
+            if age_idx >= 0:
                 patient_vector[age_idx] = (
                     age - X_train.iloc[:, age_idx].mean()
                 ) / X_train.iloc[:, age_idx].std()
@@ -310,22 +308,29 @@ with col2:
                     for i, name in enumerate(feature_names)
                     if "num_programs" in name.lower()
                 ),
-                0,
+                -1,
             )
-            if hosp_idx > 0:
+            if hosp_idx >= 0:
                 patient_vector[hosp_idx] = num_hospital_visits
 
             # Reshape for prediction
             patient_vector = patient_vector.reshape(1, -1)
 
             # Get prediction
-            risk_prob = model.predict_proba(patient_vector)[0, 1]
+            pred_proba = model.predict_proba(patient_vector)
+            risk_prob = (
+                pred_proba[0, 1] if pred_proba.shape[1] > 1 else pred_proba[0, 0]
+            )
             risk_percent = risk_prob * 100
 
             # Get SHAP explanation
-            shap_values = explainer.shap_values(patient_vector)[
-                1
-            ]  # Class 1 (readmitted)
+            shap_vals = explainer.shap_values(patient_vector)
+            # For binary classification, shap_values returns shape (n_samples, n_features)
+            # We need the first (and only) sample
+            if isinstance(shap_vals, list):
+                shap_values = shap_vals[1][0] if len(shap_vals) > 1 else shap_vals[0][0]
+            else:
+                shap_values = shap_vals[0]
 
             # ================================================================
             # RISK SCORE DISPLAY
@@ -436,17 +441,27 @@ with col2:
             fig, ax = plt.subplots(figsize=(10, 6))
 
             # Create explanation object for waterfall plot
-            shap_exp = shap.Explanation(
-                values=shap_values,
-                base_values=model.intercept_[0],
-                data=patient_vector[0],
-                feature_names=feature_names,
-            )
+            try:
+                shap_exp = shap.Explanation(
+                    values=shap_values,
+                    base_values=model.intercept_[0],
+                    data=patient_vector[0],
+                    feature_names=feature_names,
+                )
+                shap.plots._waterfall.waterfall_legacy(shap_exp, max_display=5)
+            except Exception as e:
+                st.warning(f"Could not generate waterfall plot: {str(e)}")
+                # Fallback: show bar plot instead
+                fig, ax = plt.subplots(figsize=(10, 6))
+                top_indices = np.argsort(np.abs(shap_values))[-5:][::-1]
+                ax.barh(range(len(top_indices)), shap_values[top_indices])
+                ax.set_yticks(range(len(top_indices)))
+                ax.set_yticklabels([feature_names[i] for i in top_indices])
+                ax.set_xlabel("SHAP Value")
+                ax.set_title("Top 5 SHAP Feature Contributions")
+                st.pyplot(fig)
 
-            shap.plots._waterfall.waterfall_legacy(shap_exp, max_display=5)
-
-            st.pyplot(plt.gcf())
-            plt.close()
+            # Note: plotting handled in try-except above
 
             # ================================================================
             # CLINICAL RECOMMENDATIONS
