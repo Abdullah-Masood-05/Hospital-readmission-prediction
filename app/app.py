@@ -124,11 +124,20 @@ feature_names = model_data["feature_names"]
 def load_fairness_metrics():
     """Load fairness audit metrics to inform demographic alerts"""
     try:
-        fairness_df = pd.read_csv(
-            "./results/fairness_metrics_by_group.csv", index_col=0
-        )
-        return fairness_df
-    except:
+        df = pd.read_csv("./results/fairness_metrics_by_group.csv")
+
+        # Extract race metrics (rows where Group Type == 'Race')
+        race_rows = df[df["Group Type"] == "Race"].copy()
+        race_rows.set_index("Demographic Group", inplace=True)
+
+        # Keep only race demographic columns
+        race_df = race_rows[
+            ["Asian", "Caucasian", "AfricanAmerican", "Other", "Hispanic"]
+        ]
+
+        return race_df
+    except Exception as e:
+        print(f"Error loading fairness metrics: {e}")
         return None
 
 
@@ -369,22 +378,24 @@ with col2:
             # FAIRNESS ALERT
             # ================================================================
 
-            if fairness_df is not None and race in fairness_df.index:
-                race_metrics = fairness_df.loc[race]
-                avg_auc = fairness_df["AUC"].mean()
-                race_auc = race_metrics["AUC"]
+            if fairness_df is not None and "AUC" in fairness_df.index:
+                # Normalize race name for lookup
+                race_lookup = race.replace(" ", "")
+                if race_lookup in fairness_df.columns:
+                    race_auc = fairness_df.loc["AUC", race_lookup]
+                    avg_auc = fairness_df.loc["AUC"].mean()
 
-                if race_auc < avg_auc - 0.02:
-                    st.markdown(
-                        """
-                    <div class="fairness-warning">
-                        <strong>⚖️ Fairness Alert</strong><br>
-                        Model performance for this demographic group is lower than average.
-                        Recommendations should be reviewed carefully with clinician input.
-                    </div>
-                    """,
-                        unsafe_allow_html=True,
-                    )
+                    if race_auc < avg_auc - 0.02:
+                        st.markdown(
+                            """
+                        <div class="fairness-warning">
+                            <strong>⚖️ Fairness Alert</strong><br>
+                            Model performance for this demographic group is lower than average.
+                            Recommendations should be reviewed carefully with clinician input.
+                        </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
 
             # ================================================================
             # TOP 5 SHAP FACTORS
@@ -529,8 +540,10 @@ with st.sidebar:
 
     if fairness_df is not None:
         st.markdown("**Performance by Race:**")
-        race_performance = fairness_df[
-            ["AUC", "Sensitivity (TPR)", "False Positive Rate"]
+        # Select key metrics rows for display
+        metrics_to_show = ["AUC", "Sensitivity (TPR)", "False Positive Rate"]
+        race_performance = fairness_df.loc[
+            fairness_df.index.isin(metrics_to_show)
         ].copy()
         st.dataframe(race_performance.round(4), use_container_width=True)
 
