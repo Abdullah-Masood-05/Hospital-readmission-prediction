@@ -2,7 +2,8 @@ services:
   - type: web
     name: hospital-readmission-predictor
     runtime: python311
-    buildCommand: pip install -r requirements.txt
+    runtimeVersion: 3.11.9
+    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
     startCommand: streamlit run app/app.py --server.port=8501 --server.address=0.0.0.0
     envVars:
       - key: PYTHONUNBUFFERED
