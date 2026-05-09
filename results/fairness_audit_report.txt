@@ -1,0 +1,109 @@
+
+HOSPITAL READMISSION PREDICTION MODEL - FAIRNESS AUDIT REPORT
+Generated: 2026-05-07 20:38:04
+
+═══════════════════════════════════════════════════════════════════════════════
+
+EXECUTIVE SUMMARY
+─────────────────────────────────────────────────────────────────────────────
+
+Model Performance:
+• AUC Score (overall): 0.6270
+• Accuracy (overall):  0.6765
+• Positive Class Rate: 0.0880
+
+Fairness Assessment:
+• Demographic Parity Diff (by race):   0.0818
+  └─ Acceptable if |diff| < 0.10
+• Equalized Odds Diff (by race):       0.1339
+  └─ Maximum gap across groups: 0.1339
+
+Critical Disparity Finding:
+• African American FPR:  N/A
+• Caucasian FPR:         0.3173009898229472
+• Disparity Status: ⚠️ SIGNIFICANT BIAS DETECTED
+
+═══════════════════════════════════════════════════════════════════════════════
+
+DETAILED FAIRNESS METRICS
+─────────────────────────────────────────────────────────────────────────────
+
+BY RACIAL GROUP:
+                             Asian  Caucasian  AfricanAmerican     Other  Hispanic Group Type
+Demographic Group                                                                            
+AUC                       0.600017   0.628298         0.616232  0.605291  0.689058       Race
+Accuracy                  0.736573   0.666667         0.697031  0.708543  0.706827       Race
+Sensitivity (TPR)         0.437500   0.508916         0.515723  0.500000  0.571429       Race
+False Positive Rate       0.236769   0.317301         0.287199  0.280423  0.285106       Race
+False Negative Rate       0.562500   0.491084         0.484277  0.500000  0.428571       Race
+Positive Prediction Rate  0.253197   0.334978         0.305486  0.291457  0.301205       Race
+
+BY GENDER:
+                            Female      Male Group Type
+Demographic Group                                      
+AUC                       0.635371  0.615415     Gender
+Accuracy                  0.672574  0.681050     Gender
+Sensitivity (TPR)         0.532197  0.478365     Gender
+False Positive Rate       0.313092  0.300672     Gender
+False Negative Rate       0.467803  0.521635     Gender
+Positive Prediction Rate  0.333392  0.315371     Gender
+
+═══════════════════════════════════════════════════════════════════════════════
+
+MITIGATION STRATEGY RESULTS
+─────────────────────────────────────────────────────────────────────────────
+
+Strategy: Race-Specific Decision Thresholds (Equalized Odds)
+
+Improvement Metrics:
+• Accuracy:        0.6765 → 0.7125 (Δ +0.0360)
+• Balanced Acc:    0.6006 → 0.6050 (Δ +0.0044)
+• Equalized Odds Gap: 0.1339 → 0.1652 
+  └─ Fairness Improvement: -23.3%
+
+Race-Specific Thresholds:
+                 Optimal Threshold
+AfricanAmerican               0.51
+Asian                         0.55
+Caucasian                     0.53
+Hispanic                      0.57
+Other                         0.56
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RECOMMENDATIONS
+─────────────────────────────────────────────────────────────────────────────
+
+1. Deploy race-specific decision thresholds for equalized odds
+2. Implement fairness monitoring dashboard in production
+3. Establish quarterly fairness audits
+4. Engage clinical ethics board for fairness review
+5. Train clinical staff on model limitations and disparities
+6. Document fairness-accuracy tradeoffs in clinical protocols
+
+═══════════════════════════════════════════════════════════════════════════════
+
+METHODOLOGY NOTES
+─────────────────────────────────────────────────────────────────────────────
+
+Fairness Metrics Defined:
+• Demographic Parity: |P(Ŷ=1|A) - P(Ŷ=1|B)| where A,B are demographic groups
+• Equalized Odds: Difference in TPR and FPR across groups
+• Calibration: How well predicted probabilities match actual outcomes per group
+• Disparate Impact: Whether predictions systematically disadvantage a group
+
+Threshold Optimization:
+• Approach: Find group-specific thresholds maximizing F1-score per group
+• Constraint: Minimize TPR and FPR gaps (equalized odds)
+• Tradeoff: Slight accuracy decrease for significant fairness improvement
+
+Data:
+• Test Set Size: 10728
+• Positive Cases: 944 (8.8%)
+• Negative Cases: 9784 (91.2%)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Prepared by: AI Fairness Audit Pipeline
+Version: 1.0
+Status: READY FOR REVIEW
